@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cloths Slider</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #1a1a1a;
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        header {
+            width: 90%;
+            max-width: 1200px;
+            margin: 20px auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 60px;
+        }
+
+        header .logo {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #00bcd4;
+        }
+
+        header nav a {
+            margin-left: 20px;
+            text-decoration: none;
+            color: #ccc;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        header nav a:hover {
+            color: #00bcd4;
+        }
+
+        .carousel {
+            position: relative;
+            height: 700px;
+            width: 90%;
+            max-width: 1200px;
+            margin: 0 auto;
+            overflow: hidden;
+        }
+
+        .carousel .list {
+            position: absolute;
+            width: 100%;
+            height: 80%;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .carousel .list .item {
+            position: absolute;
+            left: 0;
+            width: 70%;
+            height: 100%;
+            font-size: 14px;
+            transition: left 0.5s, opacity 0.5s, width 0.5s;
+        }
+
+        .carousel .list .item:nth-child(n + 6) {
+            opacity: 0;
+        }
+
+        .carousel .list .item:nth-child(2) {
+            z-index: 10;
+            transform: translateX(0);
+        }
+
+        .carousel .list .item img {
+            width: 45%;
+            position: absolute;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            border-radius: 10px;
+            transition: right 1.5s;
+        }
+
+        .carousel .list .item .introduce {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .carousel .list .item:nth-child(2) .introduce {
+            opacity: 1;
+            pointer-events: auto;
+            width: 350px;
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            transition: opacity 0.5s;
+        }
+
+        .carousel .list .item .introduce .title {
+            font-size: 1.8em;
+            font-weight: 500;
+            color: #00bcd4;
+        }
+
+        .carousel .list .item .introduce .topic {
+            font-size: 3em;
+            font-weight: 600;
+            color: #fff;
+        }
+
+        .carousel .list .item .introduce .des {
+            font-size: 0.9em;
+            color: #ccc;
+            margin-top: 10px;
+        }
+
+        .carousel .list .item .introduce .seeMore {
+            margin-top: 15px;
+            padding: 8px 0;
+            border: none;
+            border-bottom: 2px solid #00bcd4;
+            background: transparent;
+            color: #00bcd4;
+            font-weight: 600;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .carousel .list .item .introduce .seeMore:hover {
+            background: rgba(0, 188, 212, 0.1);
+        }
+
+        .carousel .list .item:nth-child(1) {
+            transform: translateX(-100%) translateY(-5%) scale(1.5);
+            filter: blur(30px);
+            z-index: 11;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .carousel .list .item:nth-child(3) {
+            transform: translate(50%, 10%) scale(0.8);
+            filter: blur(10px);
+            z-index: 9;
+        }
+
+        .carousel .list .item:nth-child(4) {
+            transform: translate(90%, 20%) scale(0.5);
+            filter: blur(30px);
+            z-index: 8;
+        }
+
+        .carousel .list .item:nth-child(5) {
+            transform: translate(120%, 30%) scale(0.3);
+            filter: blur(40px);
+            z-index: 7;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .carousel .list .item:nth-child(2) .introduce .title,
+        .carousel .list .item:nth-child(2) .introduce .topic,
+        .carousel .list .item:nth-child(2) .introduce .des,
+        .carousel .list .item:nth-child(2) .introduce .seeMore {
+            opacity: 0;
+            animation: showContent 0.5s 1s ease-in-out 1 forwards;
+        }
+
+        @keyframes showContent {
+            from {
+                transform: translateY(-30px);
+                filter: blur(10px);
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+                filter: blur(0px);
+            }
+        }
+
+        .carousel .list .item:nth-child(2) .introduce .topic {
+            animation-delay: 1.2s;
+        }
+
+        .carousel .list .item:nth-child(2) .introduce .des {
+            animation-delay: 1.4s;
+        }
+
+        .carousel .list .item:nth-child(2) .introduce .seeMore {
+            animation-delay: 1.6s;
+        }
+
+        .carousel.next .item:nth-child(1) {
+            animation: transformFromPosition2 0.5s ease-in-out 1 forwards;
+        }
+
+        @keyframes transformFromPosition2 {
+            from {
+                transform: translateX(0);
+                filter: blur(0px);
+                opacity: 1;
+            }
+        }
+
+        .carousel.next .item:nth-child(2) {
+            animation: transformFromPosition3 0.7s ease-in-out 1 forwards;
+        }
+
+        @keyframes transformFromPosition3 {
+            from {
+                transform: translate(50%, 10%) scale(0.8);
+                filter: blur(10px);
+                opacity: 1;
+            }
+        }
+
+        .carousel.next .item:nth-child(3) {
+            animation: transformFromPosition4 0.9s ease-in-out 1 forwards;
+        }
+
+        @keyframes transformFromPosition4 {
+            from {
+                transform: translate(90%, 20%) scale(0.5);
+                filter: blur(30px);
+                opacity: 1;
+            }
+        }
+
+        .carousel.next .item:nth-child(4) {
+            animation: transformFromPosition5 1.1s ease-in-out 1 forwards;
+        }
+
+        @keyframes transformFromPosition5 {
+            from {
+                transform: translate(120%, 30%) scale(0.3);
+                filter: blur(40px);
+                opacity: 0;
+            }
+        }
+
+        .carousel.prev .list .item:nth-child(5) {
+            animation: transformFromPosition4 0.5s ease-in-out 1 forwards;
+        }
+
+        .carousel.prev .list .item:nth-child(4) {
+            animation: transformFromPosition3 0.7s ease-in-out 1 forwards;
+        }
+
+        .carousel.prev .list .item:nth-child(3) {
+            animation: transformFromPosition2 0.9s ease-in-out 1 forwards;
+        }
+
+        .carousel.prev .list .item:nth-child(2) {
+            animation: transformFromPosition1 1.1s ease-in-out 1 forwards;
+        }
+
+        @keyframes transformFromPosition1 {
+            from {
+                transform: translateX(-100%) translateY(-5%) scale(1.5);
+                filter: blur(30px);
+                opacity: 0;
+            }
+        }
+
+        .carousel .list .item .detail {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .carousel.showDetail .list .item:nth-child(3),
+        .carousel.showDetail .list .item:nth-child(4) {
+            left: 100%;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .carousel.showDetail .list .item:nth-child(2) {
+            width: 100%;
+        }
+
+        .carousel.showDetail .list .item:nth-child(2) .introduce {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .carousel.showDetail .list .item:nth-child(2) img {
+            right: 50%;
+        }
+
+        .carousel.showDetail .list .item:nth-child(2) .detail {
+            opacity: 1;
+            width: 50%;
+            position: absolute;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            text-align: right;
+            pointer-events: auto;
+        }
+
+        .carousel.showDetail .list .item:nth-child(2) .detail .title {
+            font-size: 3em;
+            color: #00bcd4;
+        }
+
+        .carousel.showDetail .list .item:nth-child(2) .detail .des {
+            font-size: 0.9em;
+            color: #ccc;
+            margin-top: 10px;
+        }
+
+        .carousel.showDetail .list .item:nth-child(2) .detail .specifications {
+            display: flex;
+            gap: 10px;
+            width: 100%;
+            border-top: 2px solid #00bcd4;
+            margin-top: 20px;
+            padding-top: 10px;
+        }
+
+        .carousel.showDetail .list .item:nth-child(2) .detail .specifications div {
+            width: 80px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .carousel.showDetail .list .item:nth-child(2) .detail .specifications div p:nth-child(1) {
+            font-weight: 600;
+            color: #00bcd4;
+        }
+
+        .carousel.showDetail .list .item:nth-child(2) .detail .specifications div p:nth-child(2) {
+            color: #ccc;
+        }
+
+        .carousel.showDetail .list .item:nth-child(2) .checkout button {
+            background: transparent;
+            border: 2px solid #00bcd4;
+            color: #00bcd4;
+            padding: 8px 15px;
+            margin-left: 10px;
+            font-weight: 500;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        .carousel.showDetail .list .item:nth-child(2) .checkout button:nth-child(2) {
+            background: #00bcd4;
+            color: #1a1a1a;
+        }
+
+        .carousel.showDetail .list .item:nth-child(2) .checkout button:hover {
+            background: #008ba3;
+            color: #fff;
+        }
+
+        .carousel.showDetail .list .item:nth-child(2) .detail .title,
+        .carousel.showDetail .list .item:nth-child(2) .detail .des,
+        .carousel.showDetail .list .item:nth-child(2) .detail .specifications,
+        .carousel.showDetail .list .item:nth-child(2) .detail .checkout {
+            opacity: 0;
+            animation: showContent 0.5s 1s ease-in-out 1 forwards;
+        }
+
+        .carousel.showDetail .list .item:nth-child(2) .detail .des {
+            animation-delay: 1.2s;
+        }
+
+        .carousel.showDetail .list .item:nth-child(2) .detail .specifications {
+            animation-delay: 1.4s;
+        }
+
+        .carousel.showDetail .list .item:nth-child(2) .detail .checkout {
+            animation-delay: 1.6s;
+        }
+
+        .arrows {
+            position: absolute;
+            bottom: 20px;
+            width: 100%;
+            max-width: 1200px;
+            display: flex;
+            justify-content: space-between;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        #prev,
+        #next {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: 2px solid #00bcd4;
+            background: transparent;
+            color: #00bcd4;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        #prev:hover,
+        #next:hover {
+            background: #00bcd4;
+            color: #1a1a1a;
+        }
+
+        #next {
+            right: 10%;
+        }
+
+        #back {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            border: none;
+            border-bottom: 2px solid #00bcd4;
+            background: transparent;
+            color: #00bcd4;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600;
+            letter-spacing: 2px;
+            padding: 10px;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.5s;
+        }
+
+        .carousel.showDetail #back {
+            opacity: 1;
+        }
+
+        .carousel.showDetail #prev,
+        .carousel.showDetail #next {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .carousel::before {
+            content: '';
+            width: 500px;
+            height: 300px;
+            background: linear-gradient(70deg, #00bcd4, #1a1a1a);
+            position: absolute;
+            z-index: -1;
+            border-radius: 20% 30% 80% 10%;
+            filter: blur(150px);
+            top: 50%;
+            left: 50%;
+            transform: translate(-10%, -50%);
+            transition: 1s;
+        }
+
+        .carousel.showDetail::before {
+            transform: translate(-100%, -50%) rotate(90deg);
+            filter: blur(130px);
+        }
+
+        @media screen and (max-width: 991px) {
+            .carousel .list .item {
+                width: 90%;
+            }
+
+            .carousel.showDetail .list .item:nth-child(2) .detail .specifications {
+                overflow: auto;
+            }
+
+            .carousel.showDetail .list .item:nth-child(2) .detail .title {
+                font-size: 2em;
+            }
+        }
+
+        @media screen and (max-width: 767px) {
+            .carousel {
+                height: 600px;
+            }
+
+            . LIVECOMMERCE .list .item {
+                width: 100%;
+                font-size: 10px;
+            }
+
+            .carousel .list {
+                height: 100%;
+            }
+
+            .carousel .list .item:nth-child(2) .introduce {
+                width: 50%;
+            }
+
+            .carousel .list .item img {
+                width: 40%;
+            }
+
+            .carousel.showDetail .list .item:nth-child(2) .detail {
+                backdrop-filter: blur(10px);
+                font-size: small;
+            }
+
+            .carousel .list .item:nth-child(2) .introduce .des,
+            .carousel.showDetail .list .item:nth-child(2) .detail .des {
+                height: 100px;
+                overflow: auto;
+            }
+
+            .carousel.showDetail .list .item:nth-child(2) .detail .checkout {
+                display: flex;
+                width: max-content;
+                float: right;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">Mushu Techy</div>
+       
+    </header>
+
+    <div class="carousel">
+        <div class="list">
+            <div class="item">
+                <img src="img/img1.png" alt="Product 1">
+                <div class="introduce">
+                    <div class="title">Floral Charm Baby Girl Set 🌸</div>
+                    <div class="topic">Elegant Toddler Outfit for Girls</div>
+                    <div class="des">
+                        Adorable 2-piece outfit with floral top and sky blue shorts – perfect for a stylish little princess! 👧✨
+                    </div>
+                    <button class="seeMore">SEE MORE &#8599</button>
+                </div>
+                <div class="detail">
+                    <div class="title">Floral Charm Baby Girl Set<</div>
+                    <div class="des">
+                        <ul>
+                            <li>Soft, breathable fabric</li>
+                            <li>Ruffled neck design with bow tie</li>
+                            <li>Stylish pleated shorts with comfy fit</li>
+                            <li>Ideal for toddlers aged 1–4 years</li>
+                        </ul>
+                        <br>
+                        Let her step out in style with grace and comfort 💙
+                    </div>
+                </div>
+            </div>
+            <div class="item">
+                <img src="img/img2.png" alt="Product 2">
+                <div class="introduce">
+                    <div class="title">🌟 Cool Vibes Kids Set</div>
+                    <div class="topic">Grey & Blue Edition</div>
+                    <div class="des">
+                        Dress your little champ in style with this comfy 2-piece t-shirt and shorts set. The soft grey striped t-shirt with a small logo adds a trendy touch, paired perfectly with lightweight blue shorts for a fresh look.
+                    </div>
+                    <button class="seeMore">SEE MORE &#8599</button>
+                </div>
+                <div class="detail">
+                    <div class="title">Cool Vibes Kids Set</div>
+                    <div class="des">
+                        <ul>
+                            <li>Soft, breathable fabric for all-day play 🌬️</li>
+                            <li>Striped t-shirt with a cool logo design 🎉</li>
+                            <li>Elastic waist shorts for easy movement ☁️</li>
+                            <li>Ideal for casual outings or playtime 🏞️</li>
+                        </ul>
+                        <br>
+                        Let him run and have fun in comfort and style! 💙
+                    </div>
+                    
+                </div>
+            </div>
+            <div class="item">
+                <img src="img/img3.png" alt="Product 3">
+                <div class="introduce">
+                    <div class="title">
+                        🌟 Dapper Toddler Suit</div>
+                    <div class="topic">Sky Blue Edition</div>
+                    <div class="des">
+                        Make your little man stand out with this stylish 3-piece toddler suit. The soft sky blue blazer, paired with matching trousers and a vibrant tie, features a unique flower pin for a touch of charm and elegance.
+                    </div>
+                    <button class="seeMore">SEE MORE &#8599</button>
+                </div>
+                <div class="detail">
+                    <div class="title">Dapper Toddler Suit</div>
+                    <div class="des">
+                        <ul>
+                            <li>Soft & breathable fabric for all-day comfort 🌬️</li>
+                            <li>Sky blue blazer with a decorative flower pin 🎉</li>
+                            <li>Matching trousers and tie for a complete look ☁️</li>
+                            <li>Perfect for weddings, parties, or special occasions 🕴️</li>
+                        </ul>
+                        <br>
+                        Let him shine with sophistication and comfort! 💙
+                        
+                    </div>
+                    
+                </div>
+            </div>
+            <div class="item">
+                <img src="img/img4.png" alt="Product 4">
+                <div class="introduce">
+                    <div class="title">🌟 Trendy Toddler Jeans</div>
+                    <div class="topic">Blue Bird Edition</div>
+                    <div class="des">
+                        Give your little one a stylish edge with these trendy toddler jeans. Featuring a distressed blue denim look with colorful bird embroidery and the word "Bandit," these jeans combine comfort with a bold, playful design.
+                    </div>
+                    <button class="seeMore">SEE MORE &#8599</button>
+                </div>
+                <div class="detail">
+                    <div class="title">Trendy Toddler Jeans</div>
+                    <div class="des">
+                        <ul>
+                            <li>Soft & durable denim fabric for all-day play </li>
+                            <li>Distressed style with vibrant bird embroidery 🎉</li>
+                            <li>Elastic waistband for easy wear and comfort ☁️</li>
+                            <li>Perfect for casual outings or playful adventures 🏞️</li>
+                        </ul>
+                        <br>
+                        Let them rock a unique style with ease! 💙
+                        
+                    </div>
+                    
+                </div>
+            </div>
+            <div class="item">
+                <img src="img/img5.png" alt="Product 5">
+                <div class="introduce">
+                    <div class="title">
+                        🌸 Magical Toddler Dress</div>
+                    <div class="topic">Unicorn Pink Edition</div>
+                    <div class="des">
+                        Transform your little princess into a fairy tale star with this enchanting toddler dress. Featuring a soft pink tutu skirt with purple ombre layers, a sparkling unicorn applique, and a comfy sleeveless top, it’s pure magic in every detail.
+                    </div>
+                    <button class="seeMore">SEE MORE &#8599</button>
+                </div>
+                <div class="detail">
+                    <div class="title">Magical Toddler Dress</div>
+                    <div class="des">
+                        <ul>
+                            <li>Soft & breathable fabric for all-day comfort 🌬️</li>
+                            <li>Unicorn applique with glitter accents 🎀</li>
+                            <li>Layered pink and purple tutu skirt for a whimsical look ☁️</li>
+                            <li>Perfect for birthdays, photoshoots, or dress-up fun 🦄</li>
+                        </ul>
+                        <br>
+                        Let her twirl in magical elegance! 💖
+                    </div>
+                    
+                </div>
+            </div>
+            <div class="item">
+                <img src="img/img6.png" alt="Product 6">
+                <div class="introduce">
+                    <div class="title">🌟 Playful Toddler Set</div>
+                    <div class="topic">Mint & Black Editionr</div>
+                    <div class="des">
+                        Dress your little trendsetter in this fun 2-piece toddler outfit. The soft mint green shirt with a stylish black bow tie and glasses print pairs perfectly with comfy black pants featuring a bold "200" design for a quirky touch.
+                    </div>
+                    <button class="seeMore">SEE MORE &#8599</button>
+                </div>
+                <div class="detail">
+                    <div class="title">Playful Toddler Set</div>
+                    <div class="des">
+                        <ul>
+                            <li>Soft & breathable fabric for all-day comfort 👶</li>
+                            <li>Mint shirt with bow tie and glasses print 🌟</li>
+                            <li>Comfy black pants with a unique "200" design 🌾</li>
+                            <li>Ideal for casual play or family outings ☀️</li>
+                        </ul>
+                        <br>
+                        Let him stand out with style and comfort! 💚
+                    </div>
+                    
+                </div>
+            </div>
+            <div class="item">
+                <img src="img/img7.png" alt="Product 7">
+                <div class="introduce">
+                    <div class="title">🌳 Casual Toddler Set</div>
+                    <div class="topic">Plaid Green Edition</div>
+                    <div class="des">
+                        Keep your little one stylish and comfy with this charming 2-piece toddler outfit. The short-sleeve plaid shirt in vibrant green and multicolored patterns pairs perfectly with soft khaki shorts for a laid-back yet trendy look.
+                    </div>
+                    <button class="seeMore">SEE MORE &#8599</button>
+                </div>
+                <div class="detail">
+                    <div class="title">Casual Toddler Set</div>
+                    <div class="des">
+                        <ul>
+                            <li>Soft & breathable fabric for all-day comfort 🍃</li>
+                            <li>Plaid green shirt with a colorful design ✨</li>
+                            <li>Comfy khaki shorts with an elastic waistband 🌼</li>
+                            <li>Perfect for playtime or casual outings ☁️</li>
+                        </ul>
+                        <br>
+                        Let him enjoy style and ease every day! 💚
+                    </div>
+                    
+                </div>
+            </div>
+        </div>
+        <div class="arrows">
+            <button id="prev">&lt;</button>
+            <button id="next">&gt;</button>
+            <button id="back">BACK &#8599</button>
+        </div>
+    </div>
+
+    <script>
+        let nextButton = document.getElementById('next');
+        let prevButton = document.getElementById('prev');
+        let carousel = document.querySelector('.carousel');
+        let listHTML = document.querySelector('.carousel .list');
+        let seeMoreButtons = document.querySelectorAll('.seeMore');
+        let backButton = document.getElementById('back');
+
+        nextButton.onclick = function() {
+            showSlider('next');
+        };
+
+        prevButton.onclick = function() {
+            showSlider('prev');
+        };
+
+        let unAcceppClick;
+        const showSlider = (type) => {
+            nextButton.style.pointerEvents = 'none';
+            prevButton.style.pointerEvents = 'none';
+
+            carousel.classList.remove('next', 'prev');
+            let items = document.querySelectorAll('.carousel .list .item');
+            if (type === 'next') {
+                listHTML.appendChild(items[0]);
+                carousel.classList.add('next');
+            } else {
+                listHTML.prepend(items[items.length - 1]);
+                carousel.classList.add('prev');
+            }
+
+            clearTimeout(unAcceppClick);
+            unAcceppClick = setTimeout(() => {
+                nextButton.style.pointerEvents = 'auto';
+                prevButton.style.pointerEvents = 'auto';
+            }, 2000);
+        };
+
+        seeMoreButtons.forEach((button) => {
+            button.onclick = function() {
+                carousel.classList.remove('next', 'prev');
+                carousel.classList.add('showDetail');
+            };
+        });
+
+        backButton.onclick = function() {
+            carousel.classList.remove('showDetail');
+        };
+    </script>
+</body>
+</html>
