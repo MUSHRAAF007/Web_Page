@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enterprise Audit Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #F8FAFC; }
+        
+        /* Custom Scrollbar for cleaner UI */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        /* Input Styling */
+       .input-field {
+    width: 100%;
+    height: 40px;              /* ✅ FIX */
+    line-height: 40px;         /* ✅ FIX */
+    text-align: center;
+    padding: 0 8px;            /* remove vertical padding */
+    border-radius: 6px;
+    border: 1px solid #E2E8F0;
+    background-color: #fff;
+    font-weight: 500;
+    font-size: 14px;           /* optional but recommended */
+    color: #334155;
+}
+
+        .input-field:focus {
+            outline: none;
+            border-color: #3B82F6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        
+        /* Irate specific input style */
+      .input-irate {
+    background-color: #FEF2F2;
+    border-color: #FECACA;
+    color: #B91C1C;
+}
+
+        .input-irate:focus {
+            border-color: #EF4444;
+            box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+        }
+
+        /* Toggle Switch */
+        .toggle-checkbox:checked {
+            right: 0;
+            border-color: #3B82F6;
+        }
+        .toggle-checkbox:checked + .toggle-label {
+            background-color: #3B82F6;
+        }
+        
+        /* Progress Bar Container */
+        .progress-bg {
+            background-color: #F1F5F9;
+            border-radius: 9999px;
+            height: 8px;
+            width: 100%;
+            overflow: hidden;
+        }
+        /* ===== EXPORT MODE ONLY ===== */
+.export-mode .export-hide {
+    display: none !important;
+}
+
+/* Center heading & date only in export */
+.export-mode .dashboard-header {
+    justify-content: center !important;
+    text-align: center;
+}
+
+.export-mode .dashboard-header > div {
+    width: 100%;
+}
+/* Center system date only in export */
+.export-mode #dashboard-title,
+.export-mode #system-date {
+    text-align: center;
+    display: block;
+}
+
+.export-mode .dashboard-header p {
+    justify-content: center;
+}
+
+    </style>
+</head>
+<body class="text-slate-800">
+    <div id="dashboardRoot"></div>
+
+    <div id="dashboard-container" class="max-w-[1400px] mx-auto p-8 min-h-screen flex flex-col bg-white shadow-2xl my-4 rounded-xl border border-slate-200">
+        
+        <div class="flex flex-col md:flex-row justify-between items-center mb-8 border-b border-slate-100 pb-6 dashboard-header">
+
+            <div>
+                <h1 id="dashboard-title" class="text-2xl font-bold text-slate-800 tracking-tight">Audit Dashboard – MTD</h1>
+                <p class="text-sm text-slate-500 mt-1 flex items-center gap-2 justify-start">
+                    <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                    System Date: <span id="system-date" class="font-medium"></span>
+                </p>
+            </div>
+
+            <div class="flex items-center gap-6 mt-4 md:mt-0 export-hide">
+                <div class="flex items-center gap-3 bg-slate-50 px-4 py-2 rounded-lg border border-slate-200">
+                    <span class="text-sm font-semibold text-slate-600">FTD</span>
+                    <div class="relative inline-block w-12 mr-2 align-middle select-none transition duration-200 ease-in">
+                        <input type="checkbox" name="toggle" id="view-toggle" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer shadow-sm transition-all duration-300 left-0 peer checked:left-6 border-slate-300 checked:border-blue-600"/>
+                        <label for="view-toggle" class="toggle-label block overflow-hidden h-6 rounded-full bg-slate-300 cursor-pointer peer-checked:bg-blue-600 transition-colors duration-300"></label>
+                    </div>
+                    <span class="text-sm font-semibold text-slate-600">MTD</span>
+                </div>
+
+                <button onclick="exportDashboard()" class="export-hide bg-slate-900 hover:bg-slate-800 text-white px-5 py-2.5 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 shadow-lg shadow-slate-900/10">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                    Export Report
+                </button>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
+            <div class="bg-white p-5 rounded-xl border border-slate-100 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.1)]">
+                <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Total Cases</p>
+                <div class="flex justify-between items-end">
+                    <h2 class="text-2xl font-bold text-slate-800" id="kpi-total">0</h2>
+                    <div class="h-1.5 w-16 bg-blue-100 rounded-full"><div class="h-full bg-blue-600 rounded-full w-full"></div></div>
+                </div>
+            </div>
+            
+            <div class="bg-white p-5 rounded-xl border border-slate-100 shadow-[0_2px_10px_-3px_rgba(16,185,129,0.1)]">
+                <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Connected</p>
+                <div class="flex justify-between items-end">
+                    <h2 class="text-2xl font-bold text-emerald-600" id="kpi-connected">0</h2>
+                    <span class="text-xs font-bold bg-emerald-50 text-emerald-600 px-2 py-1 rounded" id="kpi-connected-pct">0%</span>
+                </div>
+                <div class="mt-3 h-1.5 w-full bg-emerald-50 rounded-full"><div id="prog-kpi-conn" class="h-full bg-emerald-500 rounded-full transition-all duration-500" style="width: 0%"></div></div>
+            </div>
+
+            <div class="bg-white p-5 rounded-xl border border-slate-100 shadow-[0_2px_10px_-3px_rgba(239,68,68,0.1)]">
+                <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Not Connected</p>
+                <div class="flex justify-between items-end">
+                    <h2 class="text-2xl font-bold text-red-600" id="kpi-not-connected">0</h2>
+                    <span class="text-xs font-bold bg-red-50 text-red-600 px-2 py-1 rounded" id="kpi-not-connected-pct">0%</span>
+                </div>
+                <div class="mt-3 h-1.5 w-full bg-red-50 rounded-full"><div id="prog-kpi-not" class="h-full bg-red-500 rounded-full transition-all duration-500" style="width: 0%"></div></div>
+            </div>
+
+            <div class="bg-white p-5 rounded-xl border border-slate-100 shadow-[0_2px_10px_-3px_rgba(245,158,11,0.1)]">
+                <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Escalations</p>
+                <div class="flex justify-between items-end">
+                    <h2 class="text-2xl font-bold text-amber-600" id="kpi-escalation">0</h2>
+                    <span class="text-xs font-bold bg-amber-50 text-amber-600 px-2 py-1 rounded" id="kpi-escalation-pct">0%</span>
+                </div>
+                <div class="mt-3 h-1.5 w-full bg-amber-50 rounded-full"><div id="prog-kpi-esc" class="h-full bg-amber-500 rounded-full transition-all duration-500" style="width: 0%"></div></div>
+            </div>
+
+            <div class="bg-white p-5 rounded-xl border border-slate-100 shadow-[0_2px_10px_-3px_rgba(99,102,241,0.1)]">
+                <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Resolved</p>
+                <div class="flex justify-between items-end">
+                    <h2 class="text-2xl font-bold text-indigo-600" id="kpi-resolved">0</h2>
+                    <span class="text-xs font-bold bg-indigo-50 text-indigo-600 px-2 py-1 rounded" id="kpi-resolved-pct">0%</span>
+                </div>
+                <div class="mt-3 h-1.5 w-full bg-indigo-50 rounded-full"><div id="prog-kpi-res" class="h-full bg-indigo-500 rounded-full transition-all duration-500" style="width: 0%"></div></div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-4 flex-grow">
+            <div class="lg:col-span-2">
+                <h3 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                    Operational Metrics
+                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-500 border border-slate-200 uppercase">Live Data</span>
+                </h3>
+                
+                <div class="overflow-hidden rounded-lg border border-slate-200">
+                    <table class="w-full text-sm text-left">
+                        <thead class="bg-slate-50 text-xs font-bold text-slate-400 uppercase">
+                            <tr>
+                                <th class="px-6 py-4">Metrics</th>
+                                <th class="px-4 py-4 text-center text-red-800">Total Count</th>
+                                <th class="px-4 py-4 text-center text-red-800">IRATE</th>
+                                <th class="px-4 py-4 text-center text-red-800">Total</th>
+                                <th class="px-4 py-4 text-center text-red-800">Performance</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            
+                            <tr class="hover:bg-slate-50/50">
+                                <td class="px-6 py-3 font-medium text-slate-700">Total Cases</td>
+                                <td class="px-4 py-3"><input type="number" id="in-total-count" value="0" class="input-field" oninput="calculateMetrics()"></td>
+                                <td class="px-4 py-3"><input type="number" id="in-total-irate" value="0" class="input-field input-irate" oninput="calculateMetrics()"></td>
+                                <td class="px-4 py-3 text-center font-bold text-slate-800" id="out-total-sum">0</td>
+                                <td class="px-4 py-3"><div class="progress-bg"><div class="h-full bg-blue-500 rounded-full" style="width: 100%"></div></div></td>
+                            </tr>
+
+                            <tr class="hover:bg-slate-50/50">
+                                <td class="px-6 py-3 text-slate-600 pl-10 relative">
+                                    <span class="absolute left-6 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                                    Dialer Connect
+                                </td>
+                                <td class="px-4 py-3"><input type="number" id="in-dialer-count" value="0" class="input-field" oninput="calculateMetrics()"></td>
+                                <td class="px-4 py-3"><input type="number" id="in-dialer-irate" value="0" class="input-field input-irate" oninput="calculateMetrics()"></td>
+                                <td class="px-4 py-3 text-center font-medium text-slate-700" id="out-dialer-sum"></td>
+                                <td class="px-4 py-3 text-right font-medium text-red-500 text-xs" id="perf-dialer">0%</td>
+                            </tr>
+
+                            <tr class="hover:bg-slate-50/50">
+                                <td class="px-6 py-3 text-slate-600 pl-10 relative">
+                                    <span class="absolute left-6 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                                    Shift Cell Connected
+                                </td>
+                                <td class="px-4 py-3"><input type="number" id="in-shift-count" value="0" class="input-field" oninput="calculateMetrics()"></td>
+                                <td class="px-4 py-3"><input type="number" id="in-shift-irate" value="0" class="input-field input-irate" oninput="calculateMetrics()"></td>
+                                <td class="px-4 py-3 text-center font-medium text-slate-700" id="out-shift-sum"></td>
+                                <td class="px-4 py-3 text-right font-medium text-red-500 text-xs" id="perf-shift">0%</td>
+                            </tr>
+
+                            <tr class="bg-emerald-50/30">
+                                <td class="px-6 py-3 font-bold text-emerald-700">Total Connected</td>
+                                <td class="px-4 py-3 text-center font-bold text-emerald-600" id="auto-conn-count"></td>
+                                <td class="px-4 py-3 text-center font-bold text-emerald-600" id="auto-conn-irate"></td>
+                                <td class="px-4 py-3 text-center font-bold text-emerald-700" id="auto-conn-sum"></td>
+                                <td class="px-4 py-3 text-right font-bold text-emerald-600 text-xs" id="perf-conn">0%</td>
+                            </tr>
+
+                            <tr class="bg-red-50/30">
+                                <td class="px-6 py-3 font-bold text-red-700">Not Connected</td>
+                                <td class="px-4 py-3 text-center font-bold text-red-600" id="auto-notconn-count"></td>
+                                <td class="px-4 py-3 text-center font-bold text-red-600" id="auto-notconn-irate"></td>
+                                <td class="px-4 py-3 text-center font-bold text-red-700" id="auto-notconn-sum"></td>
+                                <td class="px-4 py-3 text-right font-bold text-emerald-600 text-xs" id="perf-notconn">0%</td>
+                            </tr>
+
+                            <tr><td colspan="5" class="h-4"></td></tr>
+
+                            <tr class="hover:bg-slate-50/50">
+                                <td class="px-6 py-3 text-slate-600">Identified Potential Esc.</td>
+                                <td class="px-4 py-3"><input type="number" id="in-esc-count" value="" class="input-field" oninput="calculateMetrics()"></td>
+                                <td class="px-4 py-3"><input type="number" id="in-esc-irate" value="" class="input-field input-irate" oninput="calculateMetrics()"></td>
+                                <td class="px-4 py-3 text-center font-medium text-slate-700" id="out-esc-sum"></td>
+                                <td class="px-4 py-3 text-right font-medium text-red-500 text-xs" id="perf-esc">0%</td>
+                            </tr>
+
+                            <tr class="hover:bg-slate-50/50">
+                                <td class="px-6 py-3 text-slate-600">Resolved - Pacified</td>
+                                <td class="px-4 py-3"><input type="number" id="in-res-count" value="" class="input-field" oninput="calculateMetrics()"></td>
+                                <td class="px-4 py-3"><input type="number" id="in-res-irate" value="" class="input-field input-irate" oninput="calculateMetrics()"></td>
+                                <td class="px-4 py-3 text-center font-medium text-slate-700" id="out-res-sum"></td>
+                                <td class="px-4 py-3">
+                                    <div class="progress-bg"><div id="bar-res" class="h-full bg-indigo-500 rounded-full" style="width: 0%"></div></div>
+                                </td>
+                            </tr>
+
+                            <tr class="hover:bg-slate-50/50">
+                                <td class="px-6 py-3 font-bold text-red-800">Not Resolved</td>
+                                <td class="px-4 py-3 text-center font-bold text-red-700" id="auto-notres-count"></td>
+                                <td class="px-4 py-3 text-center font-bold text-red-700" id="auto-notres-irate"></td>
+                                <td class="px-4 py-3 text-center font-bold text-slate-800" id="auto-notres-sum"></td>
+                                <td class="px-4 py-3">
+                                    <div class="progress-bg"><div id="bar-notres" class="h-full bg-red-400 rounded-full" style="width: 0%"></div></div>
+                                </td>
+                            </tr>
+
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="flex flex-col h-full">
+                <div class="bg-white rounded-xl border border-slate-200 p-6 shadow-sm h-full flex flex-col items-center justify-center">
+                    <h3 class="text-sm font-bold text-slate-500 uppercase tracking-wide mb-6">Connection Distribution</h3>
+                    
+                    <div class="w-full max-w-[280px] relative">
+                        <canvas id="distributionChart"></canvas>
+                        <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                            <span class="text-3xl font-bold text-slate-800" id="chart-total-center">0</span>
+                            <span class="text-xs text-slate-400 font-medium">CASES</span>
+                        </div>
+                    </div>
+
+                    <div class="w-full mt-8 space-y-3">
+                        <div class="flex justify-between items-center text-sm">
+                            <span class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-emerald-500"></span> Dialer</span>
+                            <span class="font-bold text-slate-700" id="legend-dialer">0%</span>
+                        </div>
+                        <div class="flex justify-between items-center text-sm">
+                            <span class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-teal-400"></span> Shift Cell</span>
+                            <span class="font-bold text-slate-700" id="legend-shift">0%</span>
+                        </div>
+                        <div class="flex justify-between items-center text-sm">
+                            <span class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-red-500"></span> Not Connected</span>
+                            <span class="font-bold text-slate-700" id="legend-notconn">0%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-auto border-t border-slate-100 pt-6 text-center">
+            <p class="text-xs text-slate-400 font-medium tracking-wide">© 2026 Mushraaf S Developed. All rights reserved.</p>
+        </div>
+
+    </div>
+
+    <script>
+        // --- 1. Initialization ---
+        const dateEl = document.getElementById('system-date');
+        const today = new Date();
+        const options = { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' };
+        dateEl.textContent = today.toLocaleDateString('en-US', options);
+
+        // Toggle Logic
+        const toggleCheck = document.getElementById('view-toggle');
+        const titleEl = document.getElementById('dashboard-title');
+        
+        // Ensure default state
+        toggleCheck.checked = true; // Default to MTD per UI typical standards, or FTD. 
+        // Let's set Logic: Checkbox Unchecked = FTD (Left), Checked = MTD (Right)
+        
+        toggleCheck.addEventListener('change', function() {
+            if(this.checked) {
+                titleEl.textContent = "Audit Dashboard – MTD";
+            } else {
+                titleEl.textContent = "Audit Dashboard – FTD";
+            }
+        });
+
+        // --- 2. Chart Setup ---
+        let distChart;
+        function initChart() {
+            const ctx = document.getElementById('distributionChart').getContext('2d');
+            distChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Dialer', 'Shift Cell', 'Not Connected'],
+                    datasets: [{
+                        data: [0, 0, 0],
+                        backgroundColor: ['#10B981', '#2DD4BF', '#EF4444'],
+                        borderWidth: 0,
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    cutout: '75%',
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
+
+        // --- 3. Calculation Core ---
+        function getVal(id) {
+            return parseInt(document.getElementById(id).value) || 0;
+        }
+
+        function setTxt(id, val) {
+            document.getElementById(id).innerText = val.toLocaleString();
+        }
+
+        function calculateMetrics() {
+            // --- INPUTS ---
+            // Total Cases
+            const tc_c = getVal('in-total-count');
+            const tc_i = getVal('in-total-irate');
+            const tc_sum = tc_c + tc_i;
+
+            // Dialer
+            const dial_c = getVal('in-dialer-count');
+            const dial_i = getVal('in-dialer-irate');
+            const dial_sum = dial_c + dial_i;
+
+            // Shift
+            const shift_c = getVal('in-shift-count');
+            const shift_i = getVal('in-shift-irate');
+            const shift_sum = shift_c + shift_i;
+
+            // Escalation
+            const esc_c = getVal('in-esc-count');
+            const esc_i = getVal('in-esc-irate');
+            const esc_sum = esc_c + esc_i;
+
+            // Resolved
+            const res_c = getVal('in-res-count');
+            const res_i = getVal('in-res-irate');
+            const res_sum = res_c + res_i;
+
+            // --- CALCULATIONS ---
+
+            // 1. Total Connected
+            const conn_c = dial_c + shift_c;
+            const conn_i = dial_i + shift_i;
+            const conn_sum = conn_c + conn_i;
+
+            // 2. Not Connected (Total Cases - Total Connected)
+            // Logic: Clamp to 0 if inputs are weird
+            const notconn_c = Math.max(0, tc_c - conn_c);
+            const notconn_i = Math.max(0, tc_i - conn_i);
+            const notconn_sum = Math.max(0, tc_sum - conn_sum);
+
+            // 3. Not Resolved (Escalation - Resolved)
+            const notres_c = Math.max(0, esc_c - res_c);
+            const notres_i = Math.max(0, esc_i - res_i);
+            const notres_sum = Math.max(0, esc_sum - res_sum);
+
+            // --- PERFORMANCES (%) ---
+            // Base Denominator: Total Cases Sum
+            // Helper to safe divide
+            const calcPct = (num, denom) => denom > 0 ? Math.round((num / denom) * 100) : 0;
+
+            const p_dial = calcPct(dial_sum, tc_sum);
+            const p_shift = calcPct(shift_sum, tc_sum);
+            const p_conn = calcPct(conn_sum, tc_sum);
+            const p_notconn = calcPct(notconn_sum, tc_sum);
+            const p_esc = calcPct(esc_sum, tc_sum);
+            
+            // Resolved is typically % of Escalations (Resolution Rate), 
+            // BUT prompt asks for (Metric Total / Total Cases).
+            // Image shows full purple bar for Resolved vs Esc. 
+            // I will implement (Metric / Total Cases) per prompt, 
+            // but for the visual bar on Resolved, I will fill it based on Escalation volume.
+            const p_res_metric = calcPct(res_sum, tc_sum); // For text? No, image text says "Performance".
+            // Let's stick to standard Metric/TotalCases for consistency.
+            
+            // Special handling for Resolved Bar visual: Resolved / Escalation
+            const p_res_rate = esc_sum > 0 ? Math.round((res_sum / esc_sum) * 100) : 0;
+            const p_notres_rate = esc_sum > 0 ? Math.round((notres_sum / esc_sum) * 100) : 0;
+
+
+            // --- UPDATE UI TABLE ---
+            
+            // Row 1: Total Cases
+            setTxt('out-total-sum', tc_sum);
+
+            // Row 2: Dialer
+            setTxt('out-dialer-sum', dial_sum);
+            document.getElementById('perf-dialer').innerText = p_dial + '%';
+
+            // Row 3: Shift
+            setTxt('out-shift-sum', shift_sum);
+            document.getElementById('perf-shift').innerText = p_shift + '%';
+
+            // Row 4: Connected (Auto)
+            setTxt('auto-conn-count', conn_c);
+            setTxt('auto-conn-irate', conn_i);
+            setTxt('auto-conn-sum', conn_sum);
+            document.getElementById('perf-conn').innerText = p_conn + '%';
+
+            // Row 5: Not Connected (Auto)
+            setTxt('auto-notconn-count', notconn_c);
+            setTxt('auto-notconn-irate', notconn_i);
+            setTxt('auto-notconn-sum', notconn_sum);
+            document.getElementById('perf-notconn').innerText = p_notconn + '%';
+
+            // Row 6: Escalation
+            setTxt('out-esc-sum', esc_sum);
+            document.getElementById('perf-esc').innerText = p_esc + '%';
+
+            // Row 7: Resolved
+            setTxt('out-res-sum', res_sum);
+            // Visual Bar for Resolved (using resolution rate for bar length)
+            document.getElementById('bar-res').style.width = p_res_rate + '%';
+
+            // Row 8: Not Resolved
+            setTxt('auto-notres-count', notres_c);
+            setTxt('auto-notres-irate', notres_i);
+            setTxt('auto-notres-sum', notres_sum);
+            // Visual Bar for Not Resolved
+            document.getElementById('bar-notres').style.width = p_notres_rate + '%';
+
+            // --- UPDATE KPI CARDS ---
+            setTxt('kpi-total', tc_sum);
+            
+            setTxt('kpi-connected', conn_sum);
+            setTxt('kpi-connected-pct', p_conn + '%');
+            document.getElementById('prog-kpi-conn').style.width = p_conn + '%';
+
+            setTxt('kpi-not-connected', notconn_sum);
+            setTxt('kpi-not-connected-pct', p_notconn + '%');
+            document.getElementById('prog-kpi-not').style.width = p_notconn + '%';
+
+            setTxt('kpi-escalation', esc_sum);
+            setTxt('kpi-escalation-pct', p_esc + '%');
+            document.getElementById('prog-kpi-esc').style.width = p_esc + '%';
+
+            setTxt('kpi-resolved', res_sum);
+            // For KPI Resolved, use Resolution Rate (vs Escalations) or Total Rate? 
+            // Typically resolution rate is more useful.
+            setTxt('kpi-resolved-pct', p_res_rate + '%'); 
+            document.getElementById('prog-kpi-res').style.width = p_res_rate + '%';
+
+            // --- UPDATE CHART ---
+            if(distChart) {
+                distChart.data.datasets[0].data = [dial_sum, shift_sum, notconn_sum];
+                distChart.update();
+                setTxt('chart-total-center', tc_sum);
+                setTxt('legend-dialer', p_dial + '%');
+                setTxt('legend-shift', p_shift + '%');
+                setTxt('legend-notconn', p_notconn + '%');
+            }
+        }
+
+        // --- 4. Export Function ---
+       function exportDashboard() {
+    const element = document.getElementById('dashboard-container');
+
+    // Enable export-only styles
+    element.classList.add('export-mode');
+
+    html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: '#ffffff',
+        scrollY: -window.scrollY
+    }).then(canvas => {
+        const link = document.createElement('a');
+        const suffix = toggleCheck.checked ? 'MTD' : 'FTD';
+        link.download = `Audit_Dashboard_${suffix}_${new Date().toISOString().slice(0,10)}.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+
+        // Restore UI after export
+        element.classList.remove('export-mode');
+    });
+}
+
+
+        // Run Init
+        initChart();
+        calculateMetrics(); // Initial calc
+
+    </script>
+</body>
+</html>
